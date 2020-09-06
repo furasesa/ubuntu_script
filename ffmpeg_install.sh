@@ -1,19 +1,25 @@
 #!/bin/bash
 echo "checking repository"
+# init
+buildaom=false
+
 if [ -d ffmpeg ]
 then
 	echo "ffmpeg directory is exist"
-	
 else
 	echo "no repository found. get from source"
-	echo "download git"
-	sudo apt-get update -qq && sudo apt-get -y install git rsync
+	echo "download preququest : git"
+	sudo apt-get update -qq && sudo apt-get -y install git
 	echo "clone ffmpeg from git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg"
 	git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
 fi
+
 echo "pull update from master"
+
 cd ffmpeg && git pull origin master
+
 echo "checking for dependencies"
+
 sudo apt-get update -qq && sudo apt-get -y install \
 	autoconf \
 	automake \
@@ -23,6 +29,7 @@ sudo apt-get update -qq && sudo apt-get -y install \
 	libass-dev \
 	libfreetype6-dev \
 	libgnutls28-dev \
+	libunistring-dev \
 	libsdl2-dev \
 	libtool \
 	libva-dev \
@@ -40,6 +47,7 @@ sudo apt-get update -qq && sudo apt-get -y install \
 	libx264-dev \
 
 echo "checking libaom"
+
 if [ -d aom ]
 then
 	echo "libaom source is exits. updating"
@@ -50,30 +58,26 @@ fi
 
 if [ -d aom_build ]
 then
-	is_aom_builded=true
-else
-	is_aom_builded=false
-fi
-
-if [ $is_aom_builded == true ]
-then
-	echo "do you want to re-build libaom?"
-	select yn in "rebuild" "skip"
+	echo "aom_build is detected. yes to rebuild"
+	select choices in build skip;
 	do
-		case $yn in
-			rebuild ) rebuild_aom=true; break;;
-			skip ) rebuild_aom=false; break;;
+		case $choices in
+			build)
+				mkdir -p aom_build
+        			cd aom_build && \
+        			PATH="$HOME/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom && \
+        			PATH="$HOME/bin:$PATH" make -j4 && \
+        			make install
+				;;
+			skip)
+				echo "skip rebuild libaom. if something wrong, please command or remove --enable-libaom."
+				break
+				;;
+			*)
+				echo "invalid selection"
+				;;
 		esac
 	done
-fi
-
-if [ $rebuild_aom == true ] 
-then
-	echo "rebuild libaom"
-	cd aom_build && \
-	PATH="$HOME/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DENABLE_SHARED=off -DENABLE_NASM=on ../aom && \
-	PATH="$HOME/bin:$PATH" make -j4 && \
-	make install
 fi
 
 while true; do
@@ -95,7 +99,6 @@ PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./conf
 	--bindir="$HOME/bin" \
 	--enable-gpl \
 	--enable-gnutls \
-	--enable-libaom \
 	--enable-libass \
 	--enable-libfdk-aac \
 	--enable-libfreetype \
@@ -109,5 +112,3 @@ PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./conf
 PATH="$HOME/bin:$PATH" make -j4 && \
 make install && \
 hash -r
-
-
