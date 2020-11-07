@@ -20,21 +20,24 @@ cd ffmpeg && git pull origin master
 
 echo "checking for dependencies"
 
-sudo apt-get update -qq && sudo apt-get -y install \
+sudo apt update -qq
+echo "installing package depends on libudev1"
+sudo apt install -y \
+	libudev-dev \
+	libsdl2-dev
+
+echo "installing package requires"
+sudo apt install -y \
 	autoconf \
 	automake \
 	build-essential \
 	cmake \
 	git-core \
-	libass-dev \
-	libfreetype6-dev \
 	libgnutls28-dev \
 	libunistring-dev \
-	libsdl2-dev \
 	libtool \
 	libva-dev \
 	libvdpau-dev \
-	libvorbis-dev \
 	libxcb1-dev \
 	libxcb-shm0-dev \
 	libxcb-xfixes0-dev \
@@ -43,17 +46,22 @@ sudo apt-get update -qq && sudo apt-get -y install \
 	wget \
 	yasm \
 	zlib1g-dev \
-	nasm \
+	nasm
+
+echo "checking media dependencies"
+sudo apt install -y \
+	libass-dev \
+        libfreetype6-dev \
+	libvorbis-dev \
 	libx264-dev \
-	libx265-dev \
-	libnuma-dev \
-	libvpx-dev \
-	libfdk-aac-dev \
-	libmp3lame-dev \
-	libopus-dev
+        libx265-dev \
+        libnuma-dev \
+        libvpx-dev \
+        libfdk-aac-dev \
+        libmp3lame-dev \
+        libopus-dev
 
-echo "checking libaom"
-
+#echo "checking libaom"
 #if [ -d aom ] 
 #then
 #	echo "libaom source is exits. updating"
